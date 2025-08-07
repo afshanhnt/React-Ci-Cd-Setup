@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    options {
+        skipDefaultCheckout (true)
+    }
     stages {
 
         stage ('Clean up code') {
@@ -7,6 +10,12 @@ pipeline {
                 cleanWs()
             }
 
+        }
+
+        stage('Checkout using SCM') {
+            steps {
+                checkout scm
+            }
         }
 
         stage ('Build') {
