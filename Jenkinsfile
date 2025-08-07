@@ -11,6 +11,12 @@ pipeline {
             }
 
             steps {
+
+                step('clean up workspace') {
+                    cleanWs()
+                }
+
+                step('Build project ') {
                 sh '''
                     ls -l
                     node --version
@@ -18,7 +24,9 @@ pipeline {
                     npm install
                     npm run build
                     ls -l
-                '''
+                '''    
+                }
+               
             }
         }           
     }
