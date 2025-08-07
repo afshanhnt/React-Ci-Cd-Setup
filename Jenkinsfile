@@ -12,11 +12,10 @@ pipeline {
 
             steps {
 
-                step {
                     cleanWs()
-                }
+                
 
-                step {
+                
                 sh '''
                     ls -l
                     node --version
