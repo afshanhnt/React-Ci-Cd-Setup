@@ -1,77 +1,60 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'node:22.11.0-alpine3.20'
+            args "-u root -v ${WORKSPACE}/.npm-cache:/root/.npm"
+            reuseNode true
+        }
+    }
 
     environment {
         NODE_ENV = 'test'
         VERCEL_TOKEN = credentials('VERCEL_TOKEN')
     }
 
-
     options {
         skipDefaultCheckout(true)
+        durabilityHint('PERFORMANCE_OPTIMIZED')
     }
+
     stages {
-        stage('Clean up code') {
+        stage('Checkout') {
             steps {
                 cleanWs()
-            }
-        }
-
-        stage('Checkout using SCM') {
-            steps {
                 checkout scm
             }
         }
 
-        stage('Build') {
-            agent {
-                docker {
-                    image 'node:22.11.0-alpine3.20'
-                    args "-u root -v ${WORKSPACE}/.npm-cache:/root/.npm"
-                    reuseNode true
-                }
-            }
+        stage('Install & Build') {
             steps {
                 sh '''
-                    ls -l
-                    node --version
-                    npm --version
+                    echo "Node: $(node --version)"
+                    echo "NPM: $(npm --version)"
                     npm ci --prefer-offline --cache /root/.npm
                     npm run build
-                    ls -l
-                '''
-            }
-        }
-        stage('Test') {
-            agent {
-                docker {
-                    image 'node:22.11.0-alpine3.20'
-                    args '-u root'
-                    reuseNode true
-                }
-            }
-            steps {
-                sh '''
-                    npm run test
                 '''
             }
         }
 
-        stage('Deploy') {
-            agent {
-                docker {
-                    image 'node:22.11.0-alpine3.20'
-                    args '-u root'
-                    reuseNode true
-                }
+        stage('Test') {
+            steps {
+                sh 'npm test'
             }
+        }
+
+        stage('Deploy') {
             steps {
                 sh '''
                     npm install -g vercel
-                    echo $MY_VAR
                     vercel --prod --token=$VERCEL_TOKEN --confirm --name=cicdproject
                 '''
             }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
         }
     }
 }
