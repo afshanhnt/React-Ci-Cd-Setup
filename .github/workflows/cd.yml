@@ -1,36 +1,36 @@
 name: "CD Pipeline"
 
 on:
-  workflow_run:
-    workflows: ["Sample React CI Pipeline / Workflow"]
-    types:
-      - completed
+    workflow_run:
+        workflows: ["Sample React CI Pipeline / Workflow"]
+        types:
+            - completed
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    environment: production
+    deploy:
+        runs-on: ubuntu-latest
+        environment: production
 
-    steps:
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '21'
+        steps:
+            
+            - name: "Setup nodejs"
+              uses: actions/setup-node@v4
+              with:
+                node-version: '21'
+                
+            - name: "Setup vercel cli"
+              run: npm install -g vercel
 
-      - name: Setup Vercel CLI
-        run: npm install -g vercel
+            
+            - name: "Download build files"
+              uses: actions/download-artifact@v4
+              with:
+                name: build
+                run-id: ${{ github.event.workflow_run.id   }}
+                github-token: ${{ github.token }}
 
-      - name: Download build artifact from CI workflow
-        uses: dawidd6/action-download-artifact@v2
-        with:
-          workflow: "Sample React CI Pipeline / Workflow"
-          run_id: ${{ github.event.workflow_run.id }}
-          name: build
-          github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Deploy to Vercel
-        run: |
-          vercel --prod --yes \
-            --token=${{ secrets.VERCEL_TOKEN }} \
-            --scope=${{ secrets.VERCEL_ORG }} \
-            --project=${{ secrets.VERCEL_PROJECT }}
+            - name: "Deploy to vercel"
+              run: vercel --prod --token=${{ secrets.vercel_token }} --confirm --name=cicdproject
+             
+                
