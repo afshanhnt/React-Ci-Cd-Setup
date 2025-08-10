@@ -1,6 +1,27 @@
 pipeline {
     agent any
+    options {
+        skipDefaultCheckout (true)
+    }
     stages {
+        stage ('Hello') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+        stage ('Clean up code') {
+            steps {
+                cleanWs()
+            }
+
+        }
+
+        stage('Checkout using SCM') {
+            steps {
+                checkout scm
+            }
+        }
+
         stage ('Build') {
             agent {
                 docker {
@@ -9,18 +30,20 @@ pipeline {
                     reuseNode true 
                 }
             }
-        
+
             steps {
 
+                    
                 sh '''
                     ls -l
                     node --version
                     npm --version
-                    apk add --no-cache python3 make g++
                     npm install
                     npm run build
                     ls -l
                 '''    
+                }
+               
             }
         }           
     }
