@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Clean up code') {
             steps {
-                cleanWs()
+                cleanWs(deleteDirs: true, patterns: [[pattern: 'dist', type: 'INCLUDE']])
             }
         }
 
@@ -26,8 +26,8 @@ pipeline {
         stage('Build') {
             agent {
                 docker {
-                    image 'node:22.11.0-alpine3.20'
-                    args '-u root'
+                    image 'node:22.12.0-alpine3.20'
+                    args "-u root -v ${WORKSPACE}/.npm-cache:/root/.npm"
                     reuseNode true
                 }
             }
@@ -36,7 +36,7 @@ pipeline {
                     ls -l
                     node --version
                     npm --version
-                    npm install
+                    npm ci --prefer-offline --cache /root/.npm
                     npm run build
                     ls -l
                 '''
