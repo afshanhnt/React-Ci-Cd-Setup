@@ -4,11 +4,6 @@ pipeline {
         skipDefaultCheckout (true)
     }
     stages {
-        stage ('Hello') {
-            steps {
-                echo 'Hello World'
-            }
-        }
         stage ('Clean up code') {
             steps {
                 cleanWs()
