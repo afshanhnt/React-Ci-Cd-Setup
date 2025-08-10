@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         NODE_ENV = 'test'
-        VERCEL_TOKEN = credentials('vercel-token')
+        VERCEL_TOKEN = credentials('VERCEL_TOKEN')
     }
 
 
@@ -69,7 +69,7 @@ pipeline {
                 sh '''
                     npm install -g vercel
                     echo $MY_VAR
-                    vercel --prod --token=$vercel_token --confirm --name=cicdproject
+                    vercel --prod --token=$VERCEL_TOKEN --confirm --name=cicdproject
                 '''
             }
         }
