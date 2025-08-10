@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Clean up code') {
             steps {
-                cleanWs(deleteDirs: true, patterns: [[pattern: 'dist', type: 'INCLUDE']])
+                cleanWs()
             }
         }
 
@@ -45,7 +45,7 @@ pipeline {
         stage('Test') {
             agent {
                 docker {
-                    image 'node:22.11.0-alpine3.20'
+                    image 'node:22.12.0-alpine3.20'
                     args '-u root'
                     reuseNode true
                 }
