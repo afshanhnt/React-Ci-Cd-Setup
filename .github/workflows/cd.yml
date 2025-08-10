@@ -12,15 +12,15 @@ jobs:
     environment: production
 
     steps:
-      - name: "Setup Node.js"
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '21'
 
-      - name: "Setup Vercel CLI"
+      - name: Setup Vercel CLI
         run: npm install -g vercel
 
-      - name: "Download build artifact from previous workflow"
+      - name: Download build artifact from CI workflow
         uses: dawidd6/action-download-artifact@v2
         with:
           workflow: "Sample React CI Pipeline / Workflow"
@@ -28,5 +28,9 @@ jobs:
           name: build
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: "Deploy to Vercel"
-        run: vercel --prod --token=${{ secrets.vercel_token }} --confirm --name=cicdproject
+      - name: Deploy to Vercel
+        run: |
+          vercel --prod --yes \
+            --token=${{ secrets.VERCEL_TOKEN }} \
+            --scope=${{ secrets.VERCEL_ORG }} \
+            --project=${{ secrets.VERCEL_PROJECT }}
