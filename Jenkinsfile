@@ -1,11 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:22.11.0-alpine3.20'
-            args "-u root -v ${WORKSPACE}/.npm-cache:/root/.npm"
-            reuseNode true
-        }
-    }
+    agent any
 
     environment {
         NODE_ENV = 'test'
@@ -13,48 +7,85 @@ pipeline {
     }
 
     options {
-        skipDefaultCheckout(true)
-        durabilityHint('PERFORMANCE_OPTIMIZED')
+        skipDefaultCheckout(true) // Skip the default checkout
     }
-
     stages {
-        stage('Checkout') {
+
+        stage ('Clean up code') {
             steps {
                 cleanWs()
-                checkout scm
+            }   
+        }
+
+        stage('Checkout using SCM') {
+            steps {
+                checkout scm // Checkout the code
             }
         }
 
-        stage('Install & Build') {
+        stage('Take approval') {
             steps {
-                sh '''
-                    echo "Node: $(node --version)"
-                    echo "NPM: $(npm --version)"
-                    npm ci --prefer-offline --cache /root/.npm
-                    npm run build
-                '''
+                timeout(time: 1, unit: 'MINUTES') {
+                    input message: 'Do you want to proceed?', ok: 'Proceed'
+                }
+            }
+        }
+
+        stage('Build') {
+            agent {
+                docker {
+                    image 'node:22.11.0-alpine3.20'
+                    args '-u root'
+                    reuseNode true // Reuse the node for the next stages
+                }
+            }
+
+            steps {
+
+                    sh '''
+                        ls -l
+                        node --version
+                        npm --version
+                        npm install
+                        npm run build
+                        ls -l
+                    '''
+                
             }
         }
 
         stage('Test') {
+            agent {
+                docker {
+                    image 'node:22.11.0-alpine3.20'
+                    args '-u root'
+                    reuseNode true // Reuse the node for the next stages
+                }
+            }
+
             steps {
-                sh 'npm test'
+                sh '''
+                    npm run test
+                '''
             }
         }
 
         stage('Deploy') {
+            agent {
+                docker {
+                    image 'node:22.11.0-alpine3.20'
+                    args '-u root'
+                    reuseNode true // Reuse the node for the next stages
+                }
+            }
+
             steps {
                 sh '''
                     npm install -g vercel
+                    echo $MY_VAR
                     vercel --prod --token=$VERCEL_TOKEN --confirm --name=cicdproject
                 '''
             }
-        }
-    }
-
-    post {
-        always {
-            cleanWs()
         }
     }
 }
